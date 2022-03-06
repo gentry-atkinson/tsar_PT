@@ -1,7 +1,9 @@
 #Author: Gentry Atkinson
 #Organization: Texas University
 #Data: 30 October, 2020
+#Updating: March 06, 2022
 #Identify and review a portion of a dataset most likely to be mislabeled
+#Moving to PyTorch
 
 import numpy as np
 import random as rand
@@ -10,9 +12,6 @@ from utils.build_sup_extractor import get_trained_sfe
 from utils.build_simple_dnn import get_trained_dnn
 from utils.color_pal import color_pallette_big, color_pallette_small
 from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.callbacks import EarlyStopping
-import ipywidgets as widgets
-from IPython.display import display
 from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
 from sklearn.neighbors import NearestNeighbors
@@ -403,8 +402,9 @@ def check_dataset(X, y, featureType='u', features=None):
 
 
 if __name__ == "__main__":
+    print('Demo TSAR main file')
     y = np.array([0, 1, 2, 0, 1], dtype='int')
-    print("Class imbalance: ", count_class_imbalance(y))
+    print('Class imbalance: ', count_class_imbalance(y))
     X = [
         [1, 2, 3, 4, 5],
         [5, 4, 3, 2, 1],
@@ -418,7 +418,7 @@ if __name__ == "__main__":
     print(y)
 
     indices = check_dataset(X, y, featureType='u')
-    print("worst index: ", indices[0])
+    print('worst index: ', indices[0])
     labels = ['type one', 'type two', 'type three']
-    print("Plotting index 0:")
+    print('Plotting index 0:')
     print_graph_for_instance_two_class(X, y, labels, instance=0, show=True)
