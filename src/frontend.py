@@ -1,4 +1,5 @@
 import pygame as pg
+import sys
 
 screen = None
 running = True
@@ -14,6 +15,9 @@ def setup():
     logo = pg.image.load('imgs/branding/tsar_logo.png')
     screen.blit(logo, (0,0))
 
+    pg.display.update()
+    pg.time.wait(800)
+
 def main_loop():
     global running
     pg.display.update()
@@ -28,3 +32,4 @@ if __name__ == '__main__':
         main_loop()
     pg.display.quit()
     pg.quit()
+    sys.exit()
