@@ -76,6 +76,7 @@ class AE:
     enc : Encoder
     dec : Decoder
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    weight_decay=1e-05
 
     def __init__(self) -> None:
         self.loss_fn = nn.MSELoss()
@@ -89,15 +90,16 @@ class AE:
             {'params' : self.dec.parameters()}
         ]
 
-        self.optim = torch.optim.Adam(self.params_to_optimize, lr=self.lr)
+        self.optim = torch.optim.Adam(self.params_to_optimize, lr=self.lr, weight_decay=self.weight_decay)
 
         self.enc.to(self.device)
         self.dec.to(self.device)
 
     def load_dataset(self, filename):
-        pass
+        
+        self.train_X = None
 
-    def train_AE(self, ae, train_set):
+    def train_(self):
         self.enc.train()
         self.dec.train()
         train_loss = []
