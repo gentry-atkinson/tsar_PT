@@ -10,6 +10,7 @@ from torch import nn
 from torch import sigmoid
 import torch.nn.functional as F
 import torch.optim as optim
+from torch.autograd import Variable
 
 class Encoder(nn.Module):
 #From: https://medium.com/dataseries/convolutional-autoencoder-in-pytorch-on-mnist-dataset-d65145c132ac  
@@ -96,13 +97,60 @@ class AE:
         self.dec.to(self.device)
 
     def load_dataset(self, filename):
-        
-        self.train_X = None
+        self.train_X = np.loadtxt(filename, delimiter=',')
+        self.train_X = Variable(torch.from_numpy(self.train_X).float(), requires_grad=False)
+        m=len(self.train_X)
+        train_data, val_data = random_split(self.train_X, [int(m-m*0.2), int(m*0.2)])
+        self.train_loader = torch.utils.data.DataLoader(train_data, batch_size=10)
+        self.valid_loader = torch.utils.data.DataLoader(val_data, batch_size=10)
 
-    def train_(self):
+    def train_epoch(self):
         self.enc.train()
         self.dec.train()
         train_loss = []
+        for signal_batch, _ in self.train_loader: # with "_" we just ignore the labels (the second element of the dataloader tuple)
+            # Move tensor to the proper device
+            signal_batch = signal_batch.to(self.device)
+            # Encode data
+            encoded_data = self.inc(signal_batch)
+            # Decode data
+            decoded_data = self.dec(encoded_data)
+            # Evaluate loss
+            loss = self.loss_fn(decoded_data, signal_batch)
+            # Backward pass
+            self.optim.zero_grad()
+            loss.backward()
+            self.optim.step()
+            # Print batch loss
+            print('\t partial train loss (single batch): %f' % (loss.data))
+            train_loss.append(loss.detach().cpu().numpy())
+
+        return np.mean(train_loss)
+
+    def test_epoch(self):
+        # Set evaluation mode for encoder and decoder
+        self.enc.eval()
+        self.dec.eval()
+        with torch.no_grad(): # No need to track the gradients
+            # Define the lists to store the outputs for each batch
+            conc_out = []
+            conc_label = []
+            for signal_batch, _ in self.valid_loader:
+                # Move tensor to the proper device
+                signal_batch = signal_batch.to(self.device)
+                # Encode data
+                encoded_data = self.enc(signal_batch)
+                # Decode data
+                decoded_data = self.dec(encoded_data)
+                # Append the network output and the original image to the lists
+                conc_out.append(decoded_data.cpu())
+                conc_label.append(signal_batch.cpu())
+            # Create a single tensor with all the values in the lists
+            conc_out = torch.cat(conc_out)
+            conc_label = torch.cat(conc_label) 
+            # Evaluate global loss
+            val_loss = self.loss_fn(conc_out, conc_label)
+        return val_loss.data
         
 if __name__ == '__main__':
     ae = AE()
