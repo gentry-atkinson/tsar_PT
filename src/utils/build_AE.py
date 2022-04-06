@@ -11,6 +11,8 @@ from torch import sigmoid
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
+from gen_ts_data import generate_pattern_data_as_array
+from random import randint
 
 class Encoder(nn.Module):
 #From: https://medium.com/dataseries/convolutional-autoencoder-in-pytorch-on-mnist-dataset-d65145c132ac  
@@ -151,7 +153,14 @@ class AE:
             # Evaluate global loss
             val_loss = self.loss_fn(conc_out, conc_label)
         return val_loss.data
+
+    def train(self, X):
+        pass
         
 if __name__ == '__main__':
     ae = AE()
     print('Selected device: {}'.format(ae.device))
+    demo_data = [generate_pattern_data_as_array() for _ in range(1000)]
+    demo_instance = randint(0,999)
+    print("Test insantce: ", demo_instance)
+    ae.train(demo_data)
