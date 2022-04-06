@@ -154,8 +154,15 @@ class AE:
             val_loss = self.loss_fn(conc_out, conc_label)
         return val_loss.data
 
-    def train(self, X):
-        pass
+    def train(self, X, num_epochs=30):
+        for epoch in range(num_epochs):
+            train_loss = self.train_epoch(
+                self.encoder,self.decoder,self.device,train_loader,loss_fn,optim)
+            val_loss = test_epoch(encoder,decoder,device,test_loader,loss_fn)
+            print('\n EPOCH {}/{} \t train loss {} \t val loss {}'.format(epoch + 1, num_epochs,train_loss,val_loss))
+            diz_loss['train_loss'].append(train_loss)
+            diz_loss['val_loss'].append(val_loss)
+            plot_ae_outputs(encoder,decoder,n=10)
         
 if __name__ == '__main__':
     ae = AE()
