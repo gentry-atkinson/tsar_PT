@@ -98,8 +98,16 @@ class AE:
         self.enc.to(self.device)
         self.dec.to(self.device)
 
-    def load_dataset(self, filename):
+    def load_dataset_from_CSV(self, filename):
         self.train_X = np.loadtxt(filename, delimiter=',')
+        self.train_X = Variable(torch.from_numpy(self.train_X).float(), requires_grad=False)
+        m=len(self.train_X)
+        train_data, val_data = random_split(self.train_X, [int(m-m*0.2), int(m*0.2)])
+        self.train_loader = torch.utils.data.DataLoader(train_data, batch_size=10)
+        self.valid_loader = torch.utils.data.DataLoader(val_data, batch_size=10)
+
+    def load_dataset_from_list(self, X):
+        self.train_X = np.array(X)
         self.train_X = Variable(torch.from_numpy(self.train_X).float(), requires_grad=False)
         m=len(self.train_X)
         train_data, val_data = random_split(self.train_X, [int(m-m*0.2), int(m*0.2)])
@@ -110,11 +118,11 @@ class AE:
         self.enc.train()
         self.dec.train()
         train_loss = []
-        for signal_batch, _ in self.train_loader: # with "_" we just ignore the labels (the second element of the dataloader tuple)
+        for signal_batch in self.train_loader: # with "_" we just ignore the labels (the second element of the dataloader tuple)
             # Move tensor to the proper device
             signal_batch = signal_batch.to(self.device)
             # Encode data
-            encoded_data = self.inc(signal_batch)
+            encoded_data = self.enc(signal_batch)
             # Decode data
             decoded_data = self.dec(encoded_data)
             # Evaluate loss
@@ -155,19 +163,21 @@ class AE:
         return val_loss.data
 
     def train(self, X, num_epochs=30):
+        diz_loss = {'train_loss':[],'val_loss':[]}
         for epoch in range(num_epochs):
-            train_loss = self.train_epoch(
-                self.encoder,self.decoder,self.device,train_loader,loss_fn,optim)
-            val_loss = test_epoch(encoder,decoder,device,test_loader,loss_fn)
+            train_loss = self.train_epoch()
+            val_loss = self.test_epoch()
             print('\n EPOCH {}/{} \t train loss {} \t val loss {}'.format(epoch + 1, num_epochs,train_loss,val_loss))
             diz_loss['train_loss'].append(train_loss)
             diz_loss['val_loss'].append(val_loss)
-            plot_ae_outputs(encoder,decoder,n=10)
+            #self.plot_ae_outputs(self.encoder,self.decoder,n=10)
         
 if __name__ == '__main__':
     ae = AE()
     print('Selected device: {}'.format(ae.device))
     demo_data = [generate_pattern_data_as_array() for _ in range(1000)]
     demo_instance = randint(0,999)
+    print(demo_data[0])
     print("Test insantce: ", demo_instance)
+    ae.load_dataset_from_list(demo_data)
     ae.train(demo_data)
